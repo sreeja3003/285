@@ -1,42 +1,50 @@
-#num_1 = input("enter your first num ")
-# num_2 = input("enter your second number ")
-# sum1 = int(num_1 ) + float(num_2)
-# print("sum is: " + str(sum1))
-#course1 = "python course for every rookie"
-#print(course1.find('for'))
-#print('every' in course1)
+import time
+from datetime import date
 
-# # x = input('enter x value ')
-# # x = int(x) + 3
-# # print("X value is " + str(x))
-# weight = input('enter your weight ')
-# weight_measure = input("L or KG ")
-# if weight_measure == 'L' or weight_measure == 'l':
-#    weight = int(weight) * 0.45359237
-#    print(weight)
-# elif weight_measure == 'KG' or weight_measure == 'kg':
-#   weight = int(weight) * 2.2
-#   print("Weight in pounds is " + str(weight))
+import yfinance as yf
+from flask import Flask, request
+from pandas_datareader import data as pdr
 
-# j = 1
-# while (j<= 1_0):
-#     print( "this is " + str(j * '*'))
-#     j = j +1
+now = time.strftime("%c")
 
-# numbers = [1,2,3,4,5,6,7]
-#
-# for num in numbers:
-#     print(num)
-# r = range(5, 8)
-# for i in range(2):
-#  print(i)
-# numbers =(1,2,3)
-# print(len(numbers))
+app = Flask(__name__)
 
-# def spy_game(nums):
-#     for num in nums:
-#         code = [0,0,7,'x']
-#         if num == code[0]:
-#            code.pop(0)
-#         return len(code)==1
-#
+@app.route('/', methods=['GET', 'POST']) #allow both GET and POST requests
+def index():
+    if request.method == 'POST':  #this block is only entered when the form is submitted
+        stock = request.form['symbol']
+        company_yfinance_object = yf.Ticker(stock)
+        today = date.today()
+        d1 = today.strftime("%Y-%m-%d")
+        data = pdr.get_data_yahoo(stock, start=d1, end=d1)
+        name = company_yfinance_object.info['longName'] + " (" + str(stock) +  ")\n\n"
+        curr_time = now
+        price = str(round(data.Close[0],2)) + " " + str(round(data.Close[0]-data.Open[0],2)) + " (" + str(round((data.Close[0]-data.Open[0])/data.Open[0],2)) + "%)"
+
+        return '''<title>Python Finance Info</title>
+            <form method="POST">
+                <h3>Python Finance Info</h3><br/>
+                <i>Input:</i><br/><br/>     
+                Enter a symbol <input type="text" name="symbol">
+                <input type="submit" value="Submit"><br/><br/>
+            </form>
+            <i>Output: </i><br/><br/> {}   <br/><br/><br/> {} PDT    <br/><br/><br/> {}    </h5>'''.format(curr_time, name, price)
+
+    return '''<title>Python Finance Info</title>
+        <form method="POST">
+            <h3>Python Finance Info</h3><br/>
+            <i> Input: </i><br/><br/>
+            Enter a symbol: <input type="text" name="symbol"><br/>
+            <input type="submit" value="Submit"><br/>
+        </form>'''
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return '''{}'''. format(e)
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return '''{}'''. format(e)
+
+if __name__ == '__main__':
+    app.run(debug=True)
