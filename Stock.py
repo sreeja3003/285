@@ -14,10 +14,10 @@ def index():
     if request.method == 'POST':  #this block is only entered when the form is submitted
         stock = request.form['symbol']
         company_yfinance_object = yf.Ticker(stock)
+        name = company_yfinance_object.info['longName'] + " (" + str(stock) +  ")\n\n"
         today = date.today()
         d1 = today.strftime("%Y-%m-%d")
         data = pdr.get_data_yahoo(stock, start=d1, end=d1)
-        name = company_yfinance_object.info['longName'] + " (" + str(stock) +  ")\n\n"
         curr_time = now
         price = str(round(data.Close[0],2)) + " " + str(round(data.Close[0]-data.Open[0],2)) + " (" + str(round((data.Close[0]-data.Open[0])/data.Open[0],2)) + "%)"
 
@@ -28,7 +28,7 @@ def index():
                 Enter a symbol <input type="text" name="symbol">
                 <input type="submit" value="Submit"><br/><br/>
             </form>
-            <i>Output: </i><br/><br/> {}   <br/><br/><br/> {} PDT    <br/><br/><br/> {}    </h5>'''.format(curr_time, name, price)
+            <i>Output: </i><br/><br/> {} PDT   <br/><br/><br/> {}    <br/><br/><br/> {}    </h5>'''.format(curr_time, name, price)
 
     return '''<title>Python Finance Info</title>
         <form method="POST">
